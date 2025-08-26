@@ -1,9 +1,11 @@
 const { initialiseDatabase } = require("./db/db.connect");
 const Category = require("./models/category.model");
 const Product = require("./models/product.model")
+const Cart = require("./models/cart.model")
+const Wishlist = require("./models/wishlist.model")
 const express = require("express");
 const cors = require("cors");
-const { error } = require("console");
+
 const app = express();
 
 const corsOptions = {
@@ -170,6 +172,129 @@ app.get("/products/category/:categoryId",async(req,res)=>{
     }
   }catch(err){
     res.status(500).json({error:"Failed to fetch men categories"})
+  }
+})
+
+async function createCartItem(newItem) {
+  try{
+    const cart = new Cart(newItem);
+    const savedCart = await cart.save();
+    return savedCart;
+    }catch(err){
+    console.log(err);
+    throw(err)
+  }
+}
+
+app.post("/cart",async(req,res)=>{
+  try{
+    console.log(req.body)
+    const cartItems = await createCartItem(req.body)
+    if(cartItems){
+      res.status(201).json({
+      message: "Item added to cart successfully",
+      cartItem: cartItems
+    });
+    }else{
+      res.status(404).json({error:"No items to add"})
+    }
+  }catch(err){
+    res.status(500).json({error:"Failed to add product into cart"})
+  }
+})
+
+async function readCartItems() {
+  try{
+    const cartItems = await Cart.find();
+    return cartItems;
+  }catch(err){
+    console.log(err);
+  }
+}
+
+app.get("/cart/items",async(req,res)=>{
+  try{
+    const products = await readCartItems();
+    if(products.length!=0){
+      res.status(200).json({message:"Cart Items:",products})
+    }else{
+      res.status(200).json({message:"Cart is empty"})
+    }
+  }catch(err){
+    res.status(500).json({error:"Failed to fetch cart items"})
+  }
+})
+
+async function createWishlistItem(newItem) {
+  try{
+    const wishListItem = new Wishlist(newItem);
+    const savedItem = await wishListItem.save();
+    return savedItem;
+  }catch(err){
+    console.log(err);
+    throw(err)
+  }
+}
+
+app.post("/wishlistItems",async(req,res)=>{
+  try{
+    const items = await createWishlistItem(req.body);
+    if(items){
+      res.status(201).json({message:"Added Wishlist Items:",items})
+    }else{
+      res.status(404).json({error:"No Wishlist items"})
+    }
+  }catch(err){
+    res.status(500).json({error:"Failed to fetch wishlist items"})
+  }
+})
+
+async function readAllWishListItems() {
+  try{
+      const items = await Wishlist.find();
+      return items;
+  }catch(err){
+    console.log(err);
+    throw(err);
+  }
+}
+
+app.get("/wishlist/items/products",async(req,res)=>{
+  try{
+    const wishlistItems = await readAllWishListItems();
+    if(wishlistItems.length!=0){
+      res.json(wishlistItems);
+    }else{
+      res.status(404).json({error:"No items found."})
+    }
+  }catch(err){
+    res.status(500).json({error:"Failed to fetch wishlist items"})
+  }
+})
+
+async function deleteItem(itemId){
+  try{
+    const deletedProduct = await Cart.findOneAndDelete({productId:itemId})
+    console.log(deletedProduct)
+    return deletedProduct;
+  }catch(err){
+    console.log(err);
+    throw err;
+  }
+}
+
+app.delete("/items/:itemId",async(req,res)=>{
+  try{
+    console.log(req.params.itemId)
+    const deletedItem = await deleteItem(req.params.itemId);
+    
+    if(deletedItem){
+      res.status(200).json({message:"Item deleted successfully",deletedItem})
+    }else{
+      res.status(404).json({error:"No items found."})
+    }
+  }catch(err){
+    res.status(500).json({error:"Failed to delete the items"})
   }
 })
 
