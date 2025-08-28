@@ -177,6 +177,10 @@ app.get("/products/category/:categoryId",async(req,res)=>{
 
 async function createCartItem(newItem) {
   try{
+    const existingItem = await Cart.findOne({productId:newItem.productId, size:newItem.size})
+    if(existingItem){
+      return await Cart.findOneAndUpdate({productId:newItem.productId},{$inc:{quantity:1}})
+    }
     const cart = new Cart(newItem);
     const savedCart = await cart.save();
     return savedCart;
@@ -216,7 +220,7 @@ app.get("/cart/items",async(req,res)=>{
   try{
     const products = await readCartItems();
     if(products.length!=0){
-      res.status(200).json({message:"Cart Items:",products})
+      res.status(200).json(products)
     }else{
       res.status(200).json({message:"Cart is empty"})
     }
@@ -224,6 +228,52 @@ app.get("/cart/items",async(req,res)=>{
     res.status(500).json({error:"Failed to fetch cart items"})
   }
 })
+
+async function readCartItemsById(productId) {
+  try{
+    const cartItemsById = await Cart.findById(productId)
+    return cartItemsById;
+  }catch(err){
+    console.log(err)
+    throw(err)
+  }
+}
+
+app.get("/cart/items/:itemId",async(req,res)=>{
+  try{
+    const product = await readCartItemsById(req.params.itemId);
+    if(product){
+      res.status(200).json(product)
+    }else{
+      res.status(404).json({error:"No product found."})
+    }
+  }catch(err){
+    res.status(500).json({error:"Failed to fetch product"})
+  }
+})
+
+async function updateCartItemQuantity(itemId, newQuantity) {
+  try {
+    const updatedItem = await Cart.findOneAndUpdate({productId:itemId},{ quantity: newQuantity },{ new: true } );
+    return updatedItem;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
+app.put("/cart/items/:itemId", async (req, res) => {
+  try {
+    const updatedItem = await updateCartItemQuantity(req.params.itemId, req.body.quantity);
+    if (updatedItem) {
+      res.status(200).json({message: "Cart item quantity updated successfully", updatedItem});
+    } else {
+      res.status(404).json({ error: "Cart item not found." });
+    }
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update cart item quantity" });
+  }
+});
 
 async function createWishlistItem(newItem) {
   try{
@@ -274,8 +324,8 @@ app.get("/wishlist/items/products",async(req,res)=>{
 
 async function deleteItem(itemId){
   try{
-    const deletedProduct = await Cart.findOneAndDelete({productId:itemId})
-    console.log(deletedProduct)
+    const deletedProduct = await Cart.findByIdAndDelete(itemId)
+    // console.log(deletedProduct)
     return deletedProduct;
   }catch(err){
     console.log(err);
@@ -297,6 +347,31 @@ app.delete("/items/:itemId",async(req,res)=>{
     res.status(500).json({error:"Failed to delete the items"})
   }
 })
+
+async function deleteItemFromWishList(productId) {
+  try{
+    const product = await Wishlist.findByIdAndDelete(productId)
+    return product;
+  }catch(err){
+    console.log(err);
+    throw err
+  }
+}
+
+app.delete("/wishlist/items/:itemId",async(req,res)=>{
+  try{
+    const products = await deleteItemFromWishList(req.params.itemId);
+    if(products){
+      res.status(200).json({message:"Deleted Item:",products})
+    }else{
+      res.status(404).json({error:"No Products found."})
+    }
+  }catch(err){
+    res.status(500).json({error:"Failed to delete products"})
+  }
+})
+
+
 
 const PORT = 3000;
 app.listen(PORT, () => console.log("Server is running on", PORT));

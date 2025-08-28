@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    email: {
+    emailID: {
       type: String,
       required: true,
     },
@@ -18,6 +18,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    address:{
+      type:String,
+      required:true,
+    }
   },
   { timestamps: true }
 );

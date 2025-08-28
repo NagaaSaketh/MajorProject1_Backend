@@ -15,8 +15,17 @@ const wishlistSchema = new mongoose.Schema({
         required:true,
     },
     productPrice:{
-        type:Number
-    }
+        type:Number,
+        required:true,
+    },
+    actualPrice:{
+        type:Number,
+        required:true,
+    },
+    size:{
+        type:String,
+        required:true
+    },
 },{timestamps:true})
 
 const Wishlist = mongoose.model('Wishlist',wishlistSchema);
