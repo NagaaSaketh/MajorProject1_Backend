@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const userSchema = new mongoose.Schema(
   {
     fullName: {
@@ -13,15 +12,40 @@ const userSchema = new mongoose.Schema(
     emailID: {
       type: String,
       required: true,
+      unique:true,
     },
     dateOfBirth: {
       type: String,
       required: true,
     },
-    address:{
+    password:{
       type:String,
       required:true,
-    }
+    },
+    address: [
+      {
+        street: {
+          type: String,
+          required: true,
+        },
+        city: {
+          type: String,
+          required: true,
+        },
+        state: {
+          type: String,
+          required: true,
+        },
+        country: {
+          type: String,
+          required: true,
+        },
+        pincode: {
+          type: Number,
+          required: true,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
