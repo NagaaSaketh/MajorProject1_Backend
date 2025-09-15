@@ -29,7 +29,6 @@ const wishlistSchema = new mongoose.Schema({
     },
     size:{
         type:String,
-        required:true
     },
 },{timestamps:true})
 
