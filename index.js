@@ -24,6 +24,10 @@ app.use(express.json());
 
 initialiseDatabase();
 
+app.get("/",(req,res)=>{
+  res.send("Fashion Forte Backend")
+})
+
 // Function to create new categories
 async function newCategories(category) {
   try {
